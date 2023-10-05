@@ -2,10 +2,7 @@
 import PySimpleGUI as sg
 import os
 import pandas as pd
-from smtplib import SMTP_SSL, SMTP_SSL_PORT
-from email.mime.multipart import MIMEMultipart, MIMEBase
-from email.mime.text import MIMEText
-from email import encoders
+
 
 # --------------------------------------------- Criando visualização no PySimpleGui ---------------------------------------------
 sg.theme('Dark2')
@@ -82,28 +79,15 @@ def isNaN(value):
         return False
     
 
-def Novos(df, email, senha, titulo, mensagem, variaveis_adicionais=None):
-    # Criando e Puxando as variaveis para a ferramenta.
-    for i, message in enumerate(df["email"]):
-        nome = df.loc[i, "nome"]
-        anexo = df.loc[i, "anexo"]
+def Novos(email, senha, df, titulo, mensagem):
 
-        # Verifica se variaveis_adicionais é fornecido e se a chave está presente no DataFrame
-        if variaveis_adicionais is not None:
-            for chave, valor in variaveis_adicionais.items():
-                if chave in df.columns:
-                    variavel = df.loc[i, chave]
-                    # Substitui a variável no texto de saída
-                    output_text = output_text.replace("{" + chave + "}", str(variavel))
+    # Criando variaveis vazias para colunas lidas no layout
+    
 
-        with open("LogEnviados.txt", "a") as arquivo:
-            email_enviar = df.loc[i, "EMAIL"]
-            if not isNaN(email_enviar):
-                email_message = MIMEMultipart()
-                email_message.add_header('To', email_enviar)
-                email_message.add_header('From', email)
-                email_message.add_header('Subject', titulo)
-                email_message.add_header('X-Priority', '1')
+
+    for i, message in enumerate(df["EMAIL"]):
+        nome = df.loc[i, "NOME"] 
+
 
 
 # --------------------------------------------- PARTE FINAL DO PROGRAMA ---------------------------------------------
