@@ -82,7 +82,7 @@ def isNaN(value):
         return False
     
 
-def Novos(df, email, senha, titulo, mensagem, variaveis_adicionais=None):
+def emails(df, email, senha, titulo, mensagem, variaveis_adicionais=None):
     # Criando e Puxando as variaveis para a ferramenta.
     for i, message in enumerate(df["email"]):
         nome = df.loc[i, "nome"]
@@ -98,30 +98,47 @@ def Novos(df, email, senha, titulo, mensagem, variaveis_adicionais=None):
 
         with open("LogEnviados.txt", "a") as arquivo:
             email_enviar = df.loc[i, "EMAIL"]
-            if not isNaN(email_enviar):
+            if not pd.isna(email_enviar):
                 email_message = MIMEMultipart()
                 email_message.add_header('To', email_enviar)
                 email_message.add_header('From', email)
                 email_message.add_header('Subject', titulo)
                 email_message.add_header('X-Priority', '1')
 
+                #html_part = MIMEText(mensage, 'html') #Mudar
+
+                #email_message.attach(html_part)
+
+                smtp_server = SMTP_SSL(
+                    'smtp-mail.outlook.com', port=587)   # Configuração do servidor SMTP do Outlook
+                smtp_server.starttls()   # Use TLS para criptografar a conexão
+                #smtp_server.set_debuglevel(1)         #linha para depuração
+                smtp_server.login(email, senha)
+                smtp_server.sendmail(email, email_enviar,
+                                     email_message.as_string())   # Envie o e-mail
+                smtp_server.quit()   # Feche a conexão SMTP
+
 
 # --------------------------------------------- PARTE FINAL DO PROGRAMA ---------------------------------------------
 while True:
-    event, values = window.read()
-
-    if event == sg.WIN_CLOSED:
+    eventos, database = window.read()
+    if eventos == sg.WINDOW_CLOSED:
         break
+    if eventos == 'Enviar':
+        if len(database["-FILE_PATH-"]) > 0:
+            if len(database["titulo"]) > 0:
+                #if database["anexo"]:
+                if database["Novos"]:
+                    email = database["email"]
+                    senha = database["senha"]
+                    titulo = database["titulo"]
+                    df = pd.read_excel(database["-FILE_PATH-"])
 
-    if event == "Obter Nomes das Colunas":
-        file_path = values["file_path"]
-        try:
-            df = pd.read_excel(file_path)
-            colunas = df.columns
-            output_text = "\n".join(colunas)
-            window["output"].update(output_text)
-        except Exception as e:
-            window["output"].update(f"Erro ao abrir o arquivo: {str(e)}")
+                    emails(df, email, senha, titulo, mensagem, variaveis_adicionais=None)
+                    sg.popup("Emails enviados com sucesso!",
+                             "Dexei um arquivo chamado LogEnviados junto comigo!", "Da uma verificadinha la!")
 
-
-window.close()
+            else:
+                sg.popup("Coloque um titulo para enviar o email")
+        else:
+            sg.popup("Preciso saber qual planilha tenho que ler os dados!")
